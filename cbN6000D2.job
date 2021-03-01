@@ -1,0 +1,21 @@
+#!/bin/bash
+#SBATCH --account=math-cspaqft-2019      # project code
+#SBATCH --job-name=cbN6000D2             # job name
+#SBATCH --mail-type=NONE                 # (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=cm1757@york.ac.uk
+#SBATCH --ntasks=1                       # single core
+#SBATCH --cpus-per-task=1                # cores per task
+#SBATCH --array=1-1                      # task array
+#SBATCH --mem=1gb                        # memory request
+#SBATCH --time=00:30:00                  # time limit hh:mm:ss
+#SBATCH --output=logs/cbN6000D2T%a.log   # std output and error log
+
+echo Running job for array index $SLURM_ARRAY_TASK_ID on host:
+echo -e '\t'`hostname` at `date`
+
+module load math/MATLAB/2018a
+
+matlab -nosplash -nodesktop -nodisplay -r "runjobs_combine_statistics( 6000, 2, { 'Bicone' }, 1:250, false )" >logs/cbN6000D2T$SLURM_ARRAY_TASK_ID.matlab.log
+
+echo
+echo Job completed at `date`

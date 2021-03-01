@@ -1,0 +1,24 @@
+Running job for array index 1 on host:
+	node046.pri.viking.alces.network at Tue 6 Oct 19:24:30 BST 2020
+
+Job completed at Tue 6 Oct 23:29:32 BST 2020
+
+============================
+ Job utilisation efficiency
+============================
+
+Job ID: 9853111
+Array Job ID: 9853044_1
+Cluster: viking
+User/Group: cm1757/clusterusers
+State: COMPLETED (exit code 0)
+Cores: 1
+CPU Utilized: 04:04:25
+CPU Efficiency: 99.73% of 04:05:04 core-walltime
+Job Wall-clock time: 04:05:04
+Memory Utilized: 781.31 MB
+Memory Efficiency: 19.07% of 4.00 GB
+ Requested wall clock time: 20:00:00
+    Actual wall clock time: 04:05:04
+Wall clock time efficiency: 20.4%
+           Job queued time: 01:20:47

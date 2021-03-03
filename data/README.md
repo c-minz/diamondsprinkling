@@ -1,1 +1,0 @@
-These are examples of result files which are the combined by the scripts "cbN6000D*.job".

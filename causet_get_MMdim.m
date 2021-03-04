@@ -27,6 +27,9 @@ function MMdim = causet_get_MMdim( chains, newaccuracy )
 %     volume = {87},
 %     year = {2013}
 % 
+% Remark:
+% The implementation of this function is not fully tested and was not used
+% for the published results of the PhD project.
     
     %% set default values:
     if nargin < 2

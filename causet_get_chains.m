@@ -12,6 +12,8 @@ function chains = causet_get_chains( C, degree )
 % Returns:
 % CHAINS              row vector of length DEGREE with counts of total
 %                     ordered k tuples (k-chains).
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% set default values:
     if nargin < 2 || degree < 1

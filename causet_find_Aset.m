@@ -14,6 +14,8 @@ function events = causet_find_Aset( C, pastevent, futureevent )
 %                     also includes PASTEVENT as well as FUTUREEVENT and
 %                     returns only a single index if both events are the
 %                     same.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     if futureevent == pastevent % only one element
         events = pastevent;

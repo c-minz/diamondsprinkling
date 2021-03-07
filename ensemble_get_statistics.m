@@ -92,6 +92,8 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
 %                     statistics of the entire causet are stored under
 %                     index = 1. Higher indexes correspond to a shell by 
 %                     shell reduced volume. 
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% set start up parameter:
     if nargin < 5

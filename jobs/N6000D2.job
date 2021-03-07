@@ -9,6 +9,8 @@
 #SBATCH --mem=8gb                        # memory request
 #SBATCH --time=36:00:00                  # time limit hh:mm:ss
 #SBATCH --output=logs/N6000D2T%a.log     # std output and error log
+# 
+# Copyright 2021, C. Minz. BSD 3-Clause License.
 
 echo Running job for array index $SLURM_ARRAY_TASK_ID on host:
 echo -e '\t'`hostname` at `date`

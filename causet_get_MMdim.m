@@ -30,6 +30,8 @@ function MMdim = causet_get_MMdim( chains, newaccuracy )
 % Remark:
 % The implementation of this function is not fully tested and was not used
 % for the published results of the PhD project.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% set default values:
     if nargin < 2

@@ -6,6 +6,8 @@ function L = causet_get_links( C )
 % 
 % Returns:
 % L                   upper triangular (logical) links matrix.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     if ~islogical( C )
         C = logical( C ); % only for backwards compatibility, 

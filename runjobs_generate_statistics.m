@@ -20,6 +20,8 @@ function runjobs_generate_statistics( task, N, dims, shapes, runs, flags, maxsiz
 % Optional arguments:
 % MAXSIZES            memory dimensions of the results, see
 %                     ENSEMBLE_GET_STATISTICS.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
 
     %% set start up parameter:
     isSingleJob = false;

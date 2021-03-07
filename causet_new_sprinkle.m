@@ -60,6 +60,8 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
 % EVENTS              logical [ N, n ] matrix as selections of n subvolumes
 %                     for the N sprinkled events. The first column is the
 %                     entire set.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% set start up parameter:
     if nargin < 3

@@ -29,6 +29,8 @@ function runjobs_combine_statistics( Ns, dims, shapes, jobs, extend, divisions, 
 % DELJOBS             boolean flag to delete job files. 
 %                     false: job files remain (Default)
 %                     true:  job files will be deleted after loading data
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
 
     %% set start up parameter:
     if nargin < 5

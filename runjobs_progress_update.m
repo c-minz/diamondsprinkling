@@ -3,6 +3,8 @@ function runjobs_progress_update( progress )
 % 
 % Arguments:
 % PROGRESS            progress percentage.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     persistent prgcounter
     if ( nargin < 1 ) || ( progress <= 0 )

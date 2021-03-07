@@ -15,6 +15,8 @@ function [ geodesics, cardinality, allevents ] = ...
 % CARDINALITY         is a vector holding the length of each geodesic.
 % ALLEVENTS           is a vector of the indexes of all events for any
 %                     bifurcation.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% use Alexandrov set between past- and future-event:
     Aset = causet_find_Aset( C, pastevent, futureevent );

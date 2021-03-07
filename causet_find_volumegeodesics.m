@@ -27,6 +27,8 @@ function [ geodesics, cardinalities, allevents, midpointdim ] = ...
 %                     and FUTUREEVENT and N_small is the cardinality of the
 %                     smaller Alexandrov set between the midpoint and
 %                     PASTEVENT or FUTUREEVENT.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% analyse elements causally between past- and future-event:
     Aset = causet_find_Aset( C, pastevent, futureevent );

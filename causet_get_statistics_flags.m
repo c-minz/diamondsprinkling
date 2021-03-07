@@ -1,6 +1,8 @@
 function [ is, proc, get ] = causet_get_statistics_flags( flagsstring, hascoordinates, hascriterias )
 %CAUSET_GET_STATISTICS_FLAGS splits the flags for the causet statistics 
 % function in a structure of booleans.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     is.eventchain = ~isempty( strfind( flagsstring, '-chain' ) ); %#ok<*STREMP>
     is.eventset = ~is.eventchain;

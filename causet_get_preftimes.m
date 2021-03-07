@@ -4,6 +4,8 @@ function preftimes = causet_get_preftimes( L )
 % 
 % Arguments: 
 % L                   logical link matrix.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
 
     preftimes = L^2 >= 2; % preferred future/past in two link distance
 end

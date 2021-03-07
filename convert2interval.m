@@ -8,6 +8,8 @@ function intervalincrement = convert2interval( values, max, ...
 % bin).
 % The first inputs are mandatory. Default for BINCOUNT and MIN are set by 
 % FINDINTERVALBIN.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     if nargin < 3
         [ bins, bincount ] = findintervalbin( values, max );

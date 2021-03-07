@@ -9,6 +9,8 @@ function [ bins, bincount, min ] = findintervalbin( values, max, ...
 % bin).
 % The first inputs are mandatory. BINCOUNT is by default 102, MIN is by
 % default 0.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     if nargin < 3
         bincount = 102;

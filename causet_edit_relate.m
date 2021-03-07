@@ -8,6 +8,8 @@ function C = causet_edit_relate( coordinates, metric )
 % 
 % Returns:
 % C                   upper triangular (logical) causal matrix.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     N = size( coordinates, 1 );
     C = false( N );

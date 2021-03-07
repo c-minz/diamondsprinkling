@@ -21,11 +21,11 @@ The research results are generated with the following steps:
 3. Raw data files are converted to data tables (two column csv files) with the functions given in the repository https://github.com/c-minz/diamondresults .
 4. Data files are plotted with histograms and diagrams with TikZ, also see repository https://github.com/c-minz/diamondresults .
 
-Distribution Information
-========================
+Distributional Information
+==========================
 
 Development environments: MATLAB R2019a, MATLAB R2020a
 
-Software version on the cluster: MATLAB R2018a
+BSD 3-Clause License, see [license file](LICENSE.md).
 
-Copyright 2021 by Christoph Minz.
+Copyright (c) 2021, Christoph Minz.

@@ -4,6 +4,8 @@ function infsteps = causet_select_infsteps( L, steps )
 % Unidentified elements are returned as NaN.
 % Use Inf and -Inf to address 0 step future/past infinity and values 
 % STEPS > 0 for future, STEPS < 0 for past.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     N = size( L, 1 );
     infsteps = NaN * zeros( 1, N ); % pre-allocate memory

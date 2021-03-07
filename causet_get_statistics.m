@@ -106,6 +106,8 @@ function results = causet_get_statistics( C, L, maxsizes, ...
 % 
 % Returns: 
 % RESULTS             structure with the fields specified above.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% set start up parameter:
     if nargin < 4 || isempty( flags )

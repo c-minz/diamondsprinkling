@@ -28,6 +28,8 @@ function [ spacedim, simplexcount, events ] = causet_get_simplices( C, L, presel
 %                     simplex(es). There are m rows for each n-simplex.
 %                     The first column holds the 0-face events, the second
 %                     column the 1-face events, etc.
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% initialize:
     if nargin < 4

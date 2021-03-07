@@ -35,6 +35,8 @@ function preftime = causet_find_preftimes( perimetrals, internals, criterion, mi
 % 
 % Returns:
 % PREFTIME            vector of indexes of preferred time (past/future). 
+% 
+% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     %% set default values:
     if nargin < 3 || criterion < 1 || criterion > 6

@@ -1,4 +1,5 @@
-function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle( N, d, ...
+function [ coordinates, coordinateranges, volume, events, geoendevents ] = ...
+    causet_new_sprinkle( N, d, ...
     shape, reducevolumeparams, rndstream, shapeparam, spacetime )
 %CAUSET_NEW_SPRINKLE generates causet coordinates by sprinkling N events 
 % into a D dimensional SPACETIME volume with a given SHAPE. 
@@ -13,9 +14,10 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
 %    'bicone'         ball-shape in space-dimensions, scaled down into 
 %                     the future and into the past - forming a bicone. 
 %                     (Default)
+%    'closedbicone'   same as 'bicone', but the points at the 2 tips are 
+%                     added to the causet. 
 %    'cube'           cube shape.
 %    'cuboid'         cuboid shape.
-%    'closeddoublecone' same as bicone.
 %    'cylinder'       ball-shape in space-dimensions, stacked to a cylinder
 %                     along the time-dimension.
 %    'bicylinder'     cylinder shape with 2 times default height.
@@ -60,6 +62,9 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
 % EVENTS              logical [ N, n ] matrix as selections of n subvolumes
 %                     for the N sprinkled events. The first column is the
 %                     entire set.
+% GEOENDEVENTS        logical [ N, 2 ] matrix as selections of 2 
+%                     subvolumes, one in the far past and one in the far 
+%                     future to serve as random endpoints for geodesics.
 % 
 % Copyright 2021, C. Minz. BSD 3-Clause License.
     
@@ -68,9 +73,6 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
         shape = 'bicone';
     else
         shape = lower( shape );
-    end
-    if strcmp( shape, 'closeddoublecone' )
-        shape = 'bicone';
     end
     if nargin < 4 || isempty( reducevolumeparams )
         reducevolumeparams = [ 0, 1 ];
@@ -108,11 +110,12 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
         spacetime = 'Minkowski';
     end
     %% allocate memory for coordinates:
-    isBicone = strcmp( shape, 'bicone' );
+    isClosedBicone = strcmp( shape, 'closedbicone' );
+    isBicone = strcmp( shape, 'bicone' ) || isClosedBicone;
     if isBicone
-        spaceradii = zeros( N, 1 );
+        spaceradii = zeros( N + 2 * isClosedBicone, 1 );
     end
-    coordinates = zeros( N, d );
+    coordinates = zeros( N + 2 * isClosedBicone, d );
     coordinateranges = zeros( 2, d );
     %% sprinkle:
     if strcmp( spacetime, 'Minkowski' )
@@ -171,6 +174,10 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
                     ( rscaling * ballrad / r ) .* ...
                     coordinates( i, balldstart : d );
             end
+            if isClosedBicone
+                coordinates( N + 1, 1 ) = coordinateranges( 1, 1 );
+                coordinates( N + 2, 1 ) = coordinateranges( 2, 1 );
+            end
         elseif strcmp( shape, 'cuboid' ) || strcmp( shape, 'diamond' )
             % set parameters for shapes based on a cube/cuboid:
             isDiamond = strcmp( shape, 'diamond' );
@@ -225,7 +232,9 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
         [ sortedtime, I ] = sort( coordinates( :, 1 ) );
         coordinates = coordinates( I, : );
         %% select events:
-        events = true( N, abs( reducevolumeparams( 2 ) ) );
+        events = true( N + 2 * isClosedBicone, ...
+            abs( reducevolumeparams( 2 ) ) );
+        geoendevents = false( N + 2 * isClosedBicone, 2 );
         if isBicone
             spaceradii = spaceradii( I );
             if ( reducevolumeparams( 2 ) < 0 ) % single volume
@@ -250,7 +259,11 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
             else
                 biconetip = tau - ballrad;
             end
-            for i = 1 : N
+            geotau = 0;
+            if ( length( reducevolumeparams ) > 3 )
+                geotau = 2 * ballrad * reducevolumeparams( 4 ) - ballrad;
+            end
+            for i = 1 : ( N + 2 * isClosedBicone )
                 for m = m_range
                     if ( reducefuture && ( spaceradii( i ) ...
                             < biconetip( m ) - sortedtime( i ) ) ) ...
@@ -267,6 +280,13 @@ function [ coordinates, coordinateranges, volume, events ] = causet_new_sprinkle
                         events( i, m + m_offset ) = false;
                         % ... but perhaps in further volumes:
                         continue
+                    end
+                end
+                if length( reducevolumeparams ) > 3
+                    if ( spaceradii( i ) < geotau - sortedtime( i ) )
+                        geoendevents( i, 1 ) = true;
+                    elseif ( spaceradii( i ) < geotau + sortedtime( i ) )
+                        geoendevents( i, 2 ) = true;
                     end
                 end
             end

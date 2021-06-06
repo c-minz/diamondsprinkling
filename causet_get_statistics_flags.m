@@ -1,8 +1,6 @@
 function [ is, proc, get ] = causet_get_statistics_flags( flagsstring, hascoordinates, hascriterias )
 %CAUSET_GET_STATISTICS_FLAGS splits the flags for the causet statistics 
 % function in a structure of booleans.
-% 
-% Copyright 2021, C. Minz. BSD 3-Clause License.
     
     is.eventchain = ~isempty( strfind( flagsstring, '-chain' ) ); %#ok<*STREMP>
     is.eventset = ~is.eventchain;
@@ -25,6 +23,15 @@ function [ is, proc, get ] = causet_get_statistics_flags( flagsstring, hascoordi
         j = j_sel( 1 ) - 1;
         proc.reduceto = str2double( flagsstring( i : j ) );
     end
+    key = '-geoendtime=';
+    if ~isempty( strfind( flagsstring, key ) )
+        flagsstring = [ flagsstring, ' ' ];
+        i = strfind( flagsstring, key ) + length( key );
+        j_sel = strfind( flagsstring, ' ' );
+        j_sel = j_sel( j_sel >= i );
+        j = j_sel( 1 ) - 1;
+        proc.geoendtime = str2double( flagsstring( i : j ) );
+    end
     proc.showprogress = ~isempty( strfind( flagsstring, '-showprogress' ) );
     proc.linkgeodesic = ~isempty( strfind( flagsstring, '-linkgeodesic' ) ) ...
         || ~isempty( strfind( flagsstring, '-geodesics' ) );
@@ -32,11 +39,11 @@ function [ is, proc, get ] = causet_get_statistics_flags( flagsstring, hascoordi
         || ~isempty( strfind( flagsstring, '-geodesics' ) );
     proc.geodesics = proc.linkgeodesic || proc.volumegeodesic;
     if proc.volumegeodesic
-        proc.arrangementcount = 3;
+        proc.arrangementcount = 5; % 4: all, 5: single volume geodesic
     elseif proc.linkgeodesic
-        proc.arrangementcount = 2;
+        proc.arrangementcount = 3; % 2: all, 3: single link geodesic
     else
-        proc.arrangementcount = 1;
+        proc.arrangementcount = 1; % 1: entire causet
     end
     
     get.allfields = isempty( strfind( flagsstring, '-fields' ) );

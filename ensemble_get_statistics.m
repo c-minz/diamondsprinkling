@@ -141,25 +141,60 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
     g = metric( d, spacetime );
     %% allocate memory for results fields:
     subvolumecount = 1;
+    geodesicendtime = 0;
+    if isfield( proc, 'geoendtime' )
+        geodesicendtime = proc.geoendtime;
+    end
     if strcmp( shape, 'bicone' )
         if isfield( proc, 'reduceto' )
             volumesplits = -1; % single reduced volume
-            reducevolumeparams = [ proc.reduceto, -1, proc.volalign ];
+            reducevolumeparams = [ proc.reduceto, -1, proc.volalign, ...
+                geodesicendtime ];
         else
             volumesplits = 5; % up to this many volume splits for bicone
             subvolumecount = volumesplits + 1;
-            reducevolumeparams = [ 2^(-d/4), subvolumecount, proc.volalign ];
+            reducevolumeparams = [ 2^(-d/4), subvolumecount, ...
+                proc.volalign, geodesicendtime ];
         end
         results.reducevolumeparams = reducevolumeparams;
     else
         volumesplits = 0;
-        reducevolumeparams = [ 0, 1 ];
+        reducevolumeparams = [ 0, 1, 0, geodesicendtime ];
     end
     results.eventcounts = int64( zeros( 1, subvolumecount ) );
     if get.futureinfinities
         futureinfinitymax = 5; % number of k-step future infinities to compute
         results.futureinfinities = ...
             int64( zeros( futureinfinitymax + 1, subvolumecount ) );
+    end
+    if proc.geodesics
+        % Total number of sprinkles without geodesic end points:
+        results.geodesics.fails = int64( 0 ); % Post-process: none
+        if isfield( proc, 'geoendtime' )
+            % Total event counts in start/end region of geodesics (one event 
+            % of each region per sprinkle is chosen at random):
+            results.geodesics.startcount = ...
+                int64( 0 ); % Post-process: devide by (runs - startfails)
+            results.geodesics.endcount = ...
+                int64( 0 ); % Post-process: devide by (runs - endfails)
+            % Total number of sprinkles with empty start/end region:
+            results.geodesics.startfails = ...
+                int64( 0 ); % Post-process: none
+            results.geodesics.endfails = ...
+                int64( 0 ); % Post-process: none
+        end
+    end
+    if proc.linkgeodesic
+        % Total number and total length of link geodesics:
+        results.geodesics.lgcount = int64( 0 ); % Post-process: devide by (runs - fails)
+        results.geodesics.lglength = int64( 0 ); % Post-process: devide by (runs - fails)
+    end
+    if proc.volumegeodesic
+        % Total number and total length of volume geodesics:
+        results.geodesics.vgcount = int64( 0 ); % Post-process: devide by (runs - fails)
+        results.geodesics.vglength = int64( 0 ); % Post-process: devide by vgcount
+        % Mid-point dimension estimator:
+        results.geodesics.midpointdim = 0; % Post-process: devide by (runs - fails)
     end
     if get.chains
         results.chains = ...
@@ -225,8 +260,6 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
                 + int64( convert2interval( N, results.distribution.max, ...
                     results.distribution.bincount, results.distribution.min ) );
         end
-        events = 1 : N;
-        noevents_sel = false( N, 1 );
         chains = int64( zeros( 5, subvolumecount, proc.arrangementcount ) );
         simplices = int64( zeros( 4, subvolumecount, proc.arrangementcount ) );
         if get.preffutures
@@ -235,13 +268,16 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
         end
         %% sprinkle causet, possibly with further input parameters:
         if nargin < 7 % use default shape parameters:
-            [ coordinates, cranges, volume, events_sel ] = ...
+            [ coordinates, cranges, volume, events_sel, geoends_sel ] = ...
                 causet_new_sprinkle( N, d, shape, reducevolumeparams );
         else
-            [ coordinates, cranges, volume, events_sel ] = ...
+            [ coordinates, cranges, volume, events_sel, geoends_sel ] = ...
                 causet_new_sprinkle( N, d, shape, reducevolumeparams, ...
                 'global', shapeparam, spacetime );
         end
+        N = size( coordinates, 1 ); % 'closedbicone' raises N by 2, so recalc
+        events = 1 : N;
+        noevents_sel = false( N, 1 );
         %% use sprinkle coordinates for proper times and unit hyperboloid:
         if proc.coordinates
             if ( i == 1 )
@@ -293,23 +329,76 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
             infsteps = causet_select_infsteps( L, futureinfinitymax );
         end
         %% set up geodesic chains:
-        if ~proc.geodesics
-            geodesics = {};
-        else
-            if proc.linkgeodesic
-                [ geodesics1, cardinalities, gevents1 ] = ...
-                    causet_find_linkgeodesics( C, L, 1, N ); %#ok<ASGLU>
-            end
-            if proc.volumegeodesic
-                [ geodesics2, cardinalities, gevents2, midpointdim ] = ...
-                    causet_find_volumegeodesics( C, L, 1, N ); %#ok<ASGLU>
-            end
-            if proc.linkgeodesic && proc.volumegeodesic
-                geodesics = { geodesics1, geodesics2 };
-            elseif proc.linkgeodesic
-                geodesics = { geodesics1, {} };
+        geodesics = {};
+        if proc.geodesics
+            geoends_fail = false;
+            if ~isfield( proc, 'geoendtime' )
+                % use events with smallest/largest time coordinate:
+                geoends_A = 1;
+                geoends_B = N;
             else
-                geodesics = { {}, geodesics2 };
+                % use start/end regions to find random start/end events:
+                geoends_A = find( geoends_sel( :, 1 ) );
+                geoends_B = find( geoends_sel( :, 2 ) );
+                geoends_fail = isempty( geoends_A ) ...
+                            || isempty( geoends_B );
+                if isempty( geoends_A )
+                    results.geodesics.startfails = ...
+                        results.geodesics.startfails + 1;
+                else
+                    results.geodesics.startcount = ...
+                        results.geodesics.startcount + length( geoends_A );
+                end
+                if isempty( geoends_B )
+                    results.geodesics.endfails = ...
+                        results.geodesics.endfails + 1;
+                else
+                    results.geodesics.endcount = ...
+                        results.geodesics.endcount + length( geoends_B );
+                end
+                if geoends_fail
+                    results.geodesics.fails = results.geodesics.fails + 1;
+                else
+                    geoends_A = geoends_A( randi( length( geoends_A ), 1 ) );
+                    geoends_B = geoends_B( randi( length( geoends_B ), 1 ) );
+                end
+            end
+            if ~geoends_fail
+                if proc.linkgeodesic
+                    [ geodesics1, cardinality, gevents1 ] = ...
+                        causet_find_linkgeodesics( C, L, ...
+                        geoends_A, geoends_B ); %#ok<ASGLU>
+                    linkgeodesics.count = length( geodesics1 );
+                    linkgeodesics.length = cardinality;
+                end
+                if proc.volumegeodesic
+                    [ geodesics2, cardinalities, gevents2, midpointdim ] = ...
+                        causet_find_volumegeodesics( C, L, ...
+                        geoends_A, geoends_B ); %#ok<ASGLU>
+                    volumegeodesics.count = length( geodesics2 );
+                    volumegeodesics.length = sum( cardinalities );
+                    volumegeodesics.midpointdim = sum( midpointdim );
+                end
+                if proc.linkgeodesic && proc.volumegeodesic
+                    if ( linkgeodesics.count == 0 ) ...
+                    || ( volumegeodesics.count == 0 )
+                        results.geodesics.fails = results.geodesics.fails + 1;
+                    else
+                        geodesics = { geodesics1, geodesics2 };
+                    end
+                elseif proc.linkgeodesic
+                    if linkgeodesics.count == 0
+                        results.geodesics.fails = results.geodesics.fails + 1;
+                    else
+                        geodesics = { geodesics1, {} };
+                    end
+                else
+                    if volumegeodesics.count == 0
+                        results.geodesics.fails = results.geodesics.fails + 1;
+                    else
+                        geodesics = { {}, geodesics2 };
+                    end
+                end
             end
         end
         %% start with past bulk and continue shell by shell to entire set:
@@ -411,11 +500,28 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
                 end
             end
             %% get geodesics statistics:
-            if proc.geodesics
-                for m = 2 : proc.arrangementcount
-                    for i_g = 1 : length(geodesics{ m - 1 })
+            if ~isempty( geodesics )
+                if proc.linkgeodesic
+                    results.geodesics.lgcount = results.geodesics.lgcount ...
+                        + int64( linkgeodesics.count );
+                    results.geodesics.lglength = results.geodesics.lglength ...
+                        + int64( linkgeodesics.length );
+                end
+                if proc.volumegeodesic
+                    results.geodesics.vgcount = results.geodesics.vgcount ...
+                        + int64( volumegeodesics.count );
+                    results.geodesics.vglength = results.geodesics.vglength ...
+                        + int64( volumegeodesics.length );
+                    results.geodesics.midpointdim = results.geodesics.midpointdim ...
+                        + volumegeodesics.midpointdim;
+                end
+                for m = 1 : ( proc.linkgeodesic + proc.volumegeodesic )
+                    dm = 2 * m;
+                    geos = length( geodesics{ m } );
+                    randgeo = randi( [ 1, geos ], 1 );
+                    for geo = 1 : geos
                         this_chain_sel = noevents_sel;
-                        this_chain_sel( geodesics{ m - 1 }{ i_g } ) = true;
+                        this_chain_sel( geodesics{ m }{ geo } ) = true;
                         thisresults = causet_get_statistics( C, L, maxsizes, ...
                             sprintf( '-chain %s', flags ), ...
                             events( this_events_sel & this_chain_sel ), ...
@@ -423,30 +529,58 @@ function results = ensemble_get_statistics( N, d, shape, runs, ...
                         %% add diamond links statistics:
                         for j = 1 : k
                             if get.dimestimators
-                                chains( :, j, m ) = chains( :, j, m ) ...
+                                chains( :, j, dm ) = chains( :, j, dm ) ...
                                   + thisresults.chains;
+                                if geo == randgeo
+                                    chains( :, j, dm + 1 ) = ...
+                                        chains( :, j, dm + 1 ) ...
+                                      + thisresults.chains;
+                                end
                             end
                             if get.simplices
-                                simplices( :, j, m ) = simplices( :, j, m ) ...
+                                simplices( :, j, dm ) = simplices( :, j, dm ) ...
                                     + thisresults.simplices;
+                                if geo == randgeo
+                                    simplices( :, j, dm + 1 ) = ...
+                                        simplices( :, j, dm + 1 ) ...
+                                      + thisresults.simplices;
+                                end
                             end
                             if get.diamonds
-                                results.diamonds( :, :, j, m ) = ...
-                                    results.diamonds( :, :, j, m ) ...
+                                results.diamonds( :, :, j, dm ) = ...
+                                    results.diamonds( :, :, j, dm ) ...
                                   + thisresults.diamonds;
+                                if geo == randgeo
+                                    results.diamonds( :, :, j, dm + 1 ) = ...
+                                        results.diamonds( :, :, j, dm + 1 ) ...
+                                      + thisresults.diamonds;
+                                end
                             end
                             if get.propertimes
-                                results.propertimes( :, j, m ) = ...
-                                    results.propertimes( :, j, m ) ...
+                                results.propertimes( :, j, dm ) = ...
+                                    results.propertimes( :, j, dm ) ...
                                   + thisresults.propertimes;
+                                if geo == randgeo
+                                    results.propertimes( :, j, dm + 1 ) = ...
+                                        results.propertimes( :, j, dm + 1 ) ...
+                                      + thisresults.propertimes;
+                                end
                             end
                             if get.hyperbdistribution
-                                results.hyperbdistribution( :, j, m ) = ...
-                                    results.hyperbdistribution( :, j, m ) ...
+                                results.hyperbdistribution( :, j, dm ) = ...
+                                    results.hyperbdistribution( :, j, dm ) ...
                                   + thisresults.hyperbdistribution;
-                                results.hyperbspeeddistribution( :, j, m ) = ...
-                                    results.hyperbspeeddistribution( :, j, m ) ...
+                                results.hyperbspeeddistribution( :, j, dm ) = ...
+                                    results.hyperbspeeddistribution( :, j, dm ) ...
                                   + thisresults.hyperbspeeddistribution;
+                                if geo == randgeo
+                                    results.hyperbdistribution( :, j, dm + 1 ) = ...
+                                        results.hyperbdistribution( :, j, dm + 1 ) ...
+                                      + thisresults.hyperbdistribution;
+                                    results.hyperbspeeddistribution( :, j, dm + 1 ) = ...
+                                        results.hyperbspeeddistribution( :, j, dm + 1 ) ...
+                                      + thisresults.hyperbspeeddistribution;
+                                end
                             end
                         end
                     end

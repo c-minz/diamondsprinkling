@@ -383,9 +383,9 @@ function results = causet_get_statistics( C, L, maxsizes, ...
                             1 : results.preffutures.unithyperboloid_rowcount( c1, c2 ), : );
                 end
             end
+            results.preffutures = rmfield( results.preffutures, ...
+                'unithyperboloid_rowcount' );
         end
-        results.preffutures = rmfield( results.preffutures, ...
-            'unithyperboloid_rowcount' );
     end
     
     %% add row, but allocate memory in chunks:
